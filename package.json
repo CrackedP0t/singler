@@ -1,0 +1,20 @@
+{
+	"name": "singler",
+	"version": "0.0.1",
+	"description": "A utility to make all HTML resources one file",
+	"main": "src/singler.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"keywords": [
+		"minify"
+	],
+	"bin": [
+		"cli.js"
+	],
+	"author": "Elaina Martineau",
+	"license": "ISC",
+	"dependencies": {
+		"html-minifier": "^3.0.2"
+	}
+}
