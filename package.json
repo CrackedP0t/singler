@@ -1,6 +1,6 @@
 {
   "name": "singler",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "A utility to make all HTML resources one file",
   "main": "src/singler.js",
   "keywords": [
@@ -14,5 +14,6 @@
   "dependencies": {
     "html-minifier": "^3.0.2",
     "yargs": "^5.0.0"
-  }
+  },
+  "repository": "https://github.com/CrackedP0t/singler.git"
 }
