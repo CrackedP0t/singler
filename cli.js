@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 var singler = require("./src/singler.js");
 
 var args = process.argv.slice(2);
