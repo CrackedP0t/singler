@@ -1,8 +1,9 @@
 var minify = require('html-minifier').minify;
 var fs = require("fs");
+var path = require("path");
 
-function singlify(file, outfile) {
-	let opts = {
+function singler(opts) {
+	var minifyOpts = {
 		collapseBooleanAttributes: true,
 		collapseWhitespace: true,
 		minifyCSS: true,
@@ -13,24 +14,31 @@ function singlify(file, outfile) {
 		removeRedundantAttributes: true
 	};
 
-	let cssRX = /<link.+href=["']?([\w\.]+)["']?.*>/g;
-	let jsRX = /<script src=["']([\w\.]+)["'].*>.*<\/script>/g;
+	var cssRX = /<link.+href=["']?([\w\.]+)["']?.*>/gi;
+	var jsRX = /<.*script.+src=["']?([\w\.]+)["']?.*>.*<.*\/.*script.*>/gi;
 
-
-	let outstring = fs.readFileSync(file, "utf8");
+	var outstring = fs.readFileSync(path.join(opts.baseDir, opts.inFile), "utf8");
 	outstring = outstring.replace(cssRX, function(match, file) {
-		return "<style>" + fs.readFileSync(file, "utf8") + "</style>";
+		return "<style>" + fs.readFileSync(path.join(opts.baseDir, opts.cssDir, file), "utf8") + "</style>";
 	});
 	outstring = outstring.replace(jsRX, function(match, file) {
-		return "<script>" + fs.readFileSync(file, "utf8") + "</script>";
+		return "<script>" + fs.readFileSync(path.join(opts.baseDir, opts.jsDir, file), "utf8") + "</script>";
 	});
-	outstring = minify(outstring, opts);
+	outstring = minify(outstring, minifyOpts);
 
-	if (outfile) {
-		fs.writeFileSync(outfile, outstring, "utf8");
+	if (opts.outFile || opts.outDir !== "") {
+		if (!fs.existsSync(opts.outDir)){
+			fs.mkdirSync(opts.outDir);
+		}
+
+		fs.writeFileSync(opts.outFile
+						 ? path.join(opts.outDir, opts.outFile)
+						 : path.join(opts.outDir, path.parse(opts.inFile).base)
+						 , outstring
+						 , "utf8");
 	}
 
 	return outstring;
 }
 
-module.exports = singlify;
+module.exports = singler;
