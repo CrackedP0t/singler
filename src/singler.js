@@ -15,19 +15,27 @@ function singler(opts) {
 	};
 
 	if (!opts.skipRemove)
-		var removeRX = /<!\-\- singler\-remove\-start \-\->[\s\S]+<!\-\- singler\-remove\-end \-\->/gi;
-	var cssRX = /<link.+href=["']?([\w\.]+)["']?.*>/gi;
-	var jsRX = /<.*script.+src=["']?([\w\.]+)["']?.*>.*<.*\/.*script.*>/gi;
+		var removeRX = /<!\-\- singler\-remove\-start \-\->[^]+<!\-\- singler\-remove\-end \-\->/g;
+	if (!opts.skipAdd)
+		var addRX = /<!\-\- singler\-add\-start:([^]+):singler\-add\-end \-\->/g;
+	if (!opts.skipCSS)
+		var cssRX = /<link.+href=["']?([\w.]+)["']?.*>/gi;
+	if (!opts.skipJS)
+		var jsRX = /<.*script.+src=["']?([\w.]+)["']?.*>.*<.*\/.*script.*>/gi;
 
 	var outstring = fs.readFileSync(path.join(opts.baseDir, opts.inFile), "utf8");
 	if (!opts.skipRemove)
 		outstring = outstring.replace(removeRX, "");
-	outstring = outstring.replace(cssRX, function(match, file) {
-		return "<style>" + fs.readFileSync(path.join(opts.baseDir, opts.cssDir, file), "utf8") + "</style>";
-	});
-	outstring = outstring.replace(jsRX, function(match, file) {
-		return "<script>" + fs.readFileSync(path.join(opts.baseDir, opts.jsDir, file), "utf8") + "</script>";
-	});
+	if (!opts.skipAdd)
+		outstring = outstring.replace(addRX, "$1");
+	if (!opts.skipCSS)
+		outstring = outstring.replace(cssRX, function(match, file) {
+			return "<style>" + fs.readFileSync(path.join(opts.baseDir, opts.cssDir, file), "utf8") + "</style>";
+		});
+	if (!opts.skipJS)
+		outstring = outstring.replace(jsRX, function(match, file) {
+			return "<script>" + fs.readFileSync(path.join(opts.baseDir, opts.jsDir, file), "utf8") + "</script>";
+		});
 	outstring = minify(outstring, minifyOpts);
 
 	if (opts.outFile || opts.outDir !== "") {

@@ -12,7 +12,10 @@ var args = yargs
 			"css-dir": "c",
 			"js-dir": "j",
 			"print": "p",
-			"skip-remove": "r"
+			"skip-remove": "R",
+			"skip-add": "A",
+			"skip-css": "C",
+			"skip-js": "J"
 		})
 		.boolean("print")
 		.boolean("skip-remove")
@@ -25,7 +28,8 @@ var args = yargs
 		})
 		.argv;
 
-var argNames = ["outFile", "outDir", "baseDir", "cssDir", "jsDir", "print", "skipRemove"];
+var argNames = ["outFile", "outDir", "baseDir", "cssDir", "jsDir", "print", "skipRemove",
+				"skipAdd", "skipCSS", "skipJS"];
 
 var options = {
 	inFile: args._[0]
