@@ -11,9 +11,11 @@ var args = yargs
 			"base-dir": "d",
 			"css-dir": "c",
 			"js-dir": "j",
-			"print": "p"
+			"print": "p",
+			"skip-remove": "r"
 		})
 		.boolean("print")
+		.boolean("skip-remove")
 		.default({
 			"out-file": false,
 			"out-dir": "",
@@ -23,7 +25,7 @@ var args = yargs
 		})
 		.argv;
 
-var argNames = ["outFile", "outDir", "baseDir", "cssDir", "jsDir", "print"];
+var argNames = ["outFile", "outDir", "baseDir", "cssDir", "jsDir", "print", "skipRemove"];
 
 var options = {
 	inFile: args._[0]
