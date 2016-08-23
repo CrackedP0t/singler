@@ -38,7 +38,7 @@ var args = yargs
 			"html-dir": "",
 			"css-dir": "",
 			"js-dir": "",
-			"minify-config": {}
+			"minify-config": "{}"
 		})
 		.argv;
 
