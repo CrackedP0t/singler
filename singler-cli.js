@@ -51,7 +51,7 @@ for (var i in argNames) {
 	options[argNames[i]] = args[argNames[i]];
 }
 
-if (options.minifyConfig) {
+if (options.minifyConfig !== "") {
 	options.minifyConfig = JSON.parse(options.minifyConfig);
 }
 
