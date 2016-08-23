@@ -1,21 +1,31 @@
-var minify = require('html-minifier').minify;
 var fs = require("fs");
+var minify = require('html-minifier').minify;
 var path = require("path");
 
 function singler(opts) {
-	var minifyOpts = {
-		collapseBooleanAttributes: true,
-		collapseWhitespace: true,
-		minifyCSS: true,
-		minifyJS: true,
-		removeAttributeQuotes: true,
-		removeComments: true,
-		removeEmptyAttributes: true,
-		removeRedundantAttributes: true
-	};
+	var minifyOpts;
+
+	if (opts.minifyConfigReplace) {
+		minifyOpts = opts.minifyConfig;
+	} else {
+		minifyOpts = {
+			collapseBooleanAttributes: true,
+			collapseWhitespace: true,
+			minifyCSS: true,
+			minifyJS: true,
+			removeAttributeQuotes: true,
+			removeComments: true,
+			removeEmptyAttributes: true,
+			removeRedundantAttributes: true
+		};
+
+		for (var k in opts.minifyConfig) {
+			minifyOpts[k] = opts.minifyConfig[k];
+		}
+	}
 
 	if (!opts.skipRemove)
-		var removeRX = /<!\-\- singler\-remove\-start \-\->[^]+<!\-\- singler\-remove\-end \-\->/g;
+		var removeRX = /<!\-\- singler\-remove\-start:[^]+:singler\-remove\-end \-\->/g;
 	if (!opts.skipAdd)
 		var addRX = /<!\-\- singler\-add\-start:([^]+):singler\-add\-end \-\->/g;
 	if (!opts.skipCSS)
@@ -23,7 +33,7 @@ function singler(opts) {
 	if (!opts.skipJS)
 		var jsRX = /<.*script.+src=["']?([\w.]+)["']?.*>.*<.*\/.*script.*>/gi;
 
-	var outstring = fs.readFileSync(path.join(opts.baseDir, opts.inFile), "utf8");
+	var outstring = fs.readFileSync(path.join(opts.baseDir, opts.htmlDir, opts.inFile), "utf8");
 	if (!opts.skipRemove)
 		outstring = outstring.replace(removeRX, "");
 	if (!opts.skipAdd)
@@ -36,7 +46,8 @@ function singler(opts) {
 		outstring = outstring.replace(jsRX, function(match, file) {
 			return "<script>" + fs.readFileSync(path.join(opts.baseDir, opts.jsDir, file), "utf8") + "</script>";
 		});
-	outstring = minify(outstring, minifyOpts);
+	if (!opts.skipMinify)
+		outstring = minify(outstring, minifyOpts);
 
 	if (opts.outFile || opts.outDir !== "") {
 		if (!fs.existsSync(opts.outDir)){
