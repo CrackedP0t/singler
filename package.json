@@ -13,6 +13,7 @@
   "license": "ISC",
   "dependencies": {
     "html-minifier": "^3.0.2",
+    "jsdom": "^9.4.2",
     "yargs": "^5.0.0"
   },
   "repository": "https://github.com/CrackedP0t/singler.git"

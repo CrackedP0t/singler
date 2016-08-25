@@ -1,8 +1,11 @@
+var util = require("util");
+
 var fs = require("fs");
 var minify = require('html-minifier').minify;
 var path = require("path");
+var jsdom = require("jsdom");
 
-function singler(opts) {
+function singler(opts, cb1) {
 	var minifyOpts;
 
 	if (opts.minifyConfigReplace) {
@@ -24,44 +27,54 @@ function singler(opts) {
 		}
 	}
 
-	if (!opts.skipRemove)
-		var removeRX = /<!\-\- singler\-remove\-start:[^]+:singler\-remove\-end \-\->/g;
-	if (!opts.skipAdd)
-		var addRX = /<!\-\- singler\-add\-start:([^]+):singler\-add\-end \-\->/g;
-	if (!opts.skipCSS)
-		var cssRX = /<link.+href=["']?([\w.]+)["']?.*>/gi;
-	if (!opts.skipJS)
-		var jsRX = /<.*script.+src=["']?([\w.]+)["']?.*>.*<.*\/.*script.*>/gi;
+	function traverse(nIt, cb2, inRemoveBlock, toRemove=[]) {
+		var node;
+		node = nIt.nextNode();
+		if (node) {
+			var isComment = node.nodeType == 8;
+			if (inRemoveBlock) {
+				if (node.textContent.match(/:singler-remove-end/)) {
+					inRemoveBlock = false;
+				}
+				toRemove.push(node);
+				traverse(nIt, cb2, inRemoveBlock, toRemove);
+			} else if (isComment && node.textContent.match(/singler-remove-start:/)) {
+				inRemoveBlock = true;
+				toRemove.push(node);
+				traverse(nIt, cb2, inRemoveBlock, toRemove);
+			} else if (isComment && node.textContent.match(/singler-add-start:/)) {
+				var addString = node.textContent;
+				addString = addString.replace(/singler-add-start:/, "");
+				addString = addString.replace(/:singler-add-end/, "");
 
-	var outstring = fs.readFileSync(path.join(opts.baseDir, opts.htmlDir, opts.inFile), "utf8");
-	if (!opts.skipRemove)
-		outstring = outstring.replace(removeRX, "");
-	if (!opts.skipAdd)
-		outstring = outstring.replace(addRX, "$1");
-	if (!opts.skipCSS)
-		outstring = outstring.replace(cssRX, function(match, file) {
-			return "<style>" + fs.readFileSync(path.join(opts.baseDir, opts.cssDir, file), "utf8") + "</style>";
-		});
-	if (!opts.skipJS)
-		outstring = outstring.replace(jsRX, function(match, file) {
-			return "<script>" + fs.readFileSync(path.join(opts.baseDir, opts.jsDir, file), "utf8") + "</script>";
-		});
-	if (!opts.skipMinify)
-		outstring = minify(outstring, minifyOpts);
-
-	if (opts.outFile || opts.outDir !== "") {
-		if (!fs.existsSync(opts.outDir)){
-			fs.mkdirSync(opts.outDir);
+				var addElement = jsdom.env(addString, function(err, window) {
+					var headNodes = window.document.getElementsByTagName("head")[0].childNodes;
+					for (var i in headNodes) {
+						node.parentElement.insertBefore(headNodes[i], node);
+					}
+					toRemove.push(node);
+					traverse(nIt, cb2, inRemoveBlock, toRemove);
+				});
+			} else {
+				traverse(nIt, cb2, inRemoveBlock, toRemove);
+			}
+		} else {
+			for (let i in toRemove) {
+				toRemove[i].parentElement.removeChild(toRemove[i]);
+			}
+			cb2();
 		}
-
-		fs.writeFileSync(opts.outFile
-						 ? path.join(opts.outDir, opts.outFile)
-						 : path.join(opts.outDir, path.parse(opts.inFile).base)
-						 , outstring
-						 , "utf8");
 	}
 
-	return outstring;
+
+	jsdom.env(path.join(opts.baseDir, opts.htmlDir, opts.inFile), function(err, window) {
+		var nIt = window.document.createNodeIterator(window.document, window.NodeFilter.SHOW_ALL);
+		traverse(nIt, function() {
+			var html = jsdom.serializeDocument(window.document);
+			html = minify(html, minifyOpts);
+			cb1(html);
+		});
+	});
 }
 
 module.exports = singler;

@@ -55,9 +55,8 @@ if (options.minifyConfig !== "") {
 	options.minifyConfig = JSON.parse(options.minifyConfig);
 }
 
-var singled = singler(options);
-
-
-if ((!options.outFile && options.outDir === "") || options.print) {
-	console.log(singled);
-}
+var singled = singler(options, function(html) {
+	if ((!options.outFile && options.outDir === "") || options.print) {
+		console.log(html);
+	}
+});
