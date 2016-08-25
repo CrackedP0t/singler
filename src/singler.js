@@ -89,11 +89,19 @@ function singler(opts, cb1) {
 	}
 
 
-	jsdom.env(path.join(opts.baseDir, opts.htmlDir, opts.inFile), function(err, window) {
+	jsdom.env(path.join(opts.baseDir, opts.htmlDir, opts.inFile), function(err1, window) {
 		var nIt = window.document.createNodeIterator(window.document, window.NodeFilter.SHOW_ALL);
 		traverse(window.document, nIt, function() {
 			var html = jsdom.serializeDocument(window.document);
 			html = minify(html, minifyOpts);
+			if (opts.outputFile || opts.outputDir) {
+				var filePath = path.join(opts.outputDir, opts.outputFile);
+				fs.mkdir(path.parse(filePath).dir, function(err2) {
+					fs.writeFile(filePath, html, function(err3) {
+						cb1(html);
+					});
+				});
+			}
 			cb1(html);
 		});
 	});

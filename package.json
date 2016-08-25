@@ -1,6 +1,6 @@
 {
   "name": "singler",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A utility to make all HTML resources one file",
   "main": "src/singler.js",
   "keywords": [
