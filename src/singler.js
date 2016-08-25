@@ -94,15 +94,15 @@ function singler(opts, cb1) {
 		traverse(window.document, nIt, function() {
 			var html = jsdom.serializeDocument(window.document);
 			html = minify(html, minifyOpts);
-			if (opts.outputFile || opts.outputDir) {
-				var filePath = path.join(opts.outputDir, opts.outputFile);
+			if (opts.outFile || opts.outDir !== "") {
+				var filePath = path.join(opts.outDir, opts.outFile
+										 || path.parse(opts.inFile).base);
 				fs.mkdir(path.parse(filePath).dir, function(err2) {
 					fs.writeFile(filePath, html, function(err3) {
 						cb1(html);
 					});
 				});
 			}
-			cb1(html);
 		});
 	});
 }
