@@ -27,7 +27,8 @@ function singler(opts, cb1) {
 		}
 	}
 
-	function traverse(nIt, cb2, inRemoveBlock, toRemove=[]) {
+	function traverse(document, nIt, cb2, inRemoveBlock, toRemove) {
+		toRemove = toRemove || [];
 		var node;
 		node = nIt.nextNode();
 		if (node) {
@@ -37,11 +38,11 @@ function singler(opts, cb1) {
 					inRemoveBlock = false;
 				}
 				toRemove.push(node);
-				traverse(nIt, cb2, inRemoveBlock, toRemove);
+				traverse(document, nIt, cb2, inRemoveBlock, toRemove);
 			} else if (isComment && node.textContent.match(/singler-remove-start:/)) {
 				inRemoveBlock = true;
 				toRemove.push(node);
-				traverse(nIt, cb2, inRemoveBlock, toRemove);
+				traverse(document, nIt, cb2, inRemoveBlock, toRemove);
 			} else if (isComment && node.textContent.match(/singler-add-start:/)) {
 				var addString = node.textContent;
 				addString = addString.replace(/singler-add-start:/, "");
@@ -53,13 +54,34 @@ function singler(opts, cb1) {
 						node.parentElement.insertBefore(headNodes[i], node);
 					}
 					toRemove.push(node);
-					traverse(nIt, cb2, inRemoveBlock, toRemove);
+					traverse(document, nIt, cb2, inRemoveBlock, toRemove);
+				});
+			} else if (node.tagName
+					   && node.tagName.toLowerCase() == "link"
+					   && node.rel == "stylesheet") {
+				var filePath = path.join(opts.baseDir, opts.cssDir, path.parse(node.href).base);
+				fs.readFile(filePath, "utf8", function(err, data) {
+					var style = document.createElement("style");
+					style.textContent = data;
+					node.parentElement.replaceChild(style, node);
+
+					traverse(document, nIt, cb2, inRemoveBlock, toRemove);
+				});
+			} else if (node.tagName
+					   && node.tagName.toLowerCase() == "script"
+					   && node.src) {
+				var filePath = path.join(opts.baseDir, opts.jsDir, path.parse(node.src).base);
+				fs.readFile(filePath, "utf8", function(err, data) {
+					node.removeAttribute("src");
+					node.textContent = data;
+
+					traverse(document, nIt, cb2, inRemoveBlock, toRemove);
 				});
 			} else {
-				traverse(nIt, cb2, inRemoveBlock, toRemove);
+				traverse(document, nIt, cb2, inRemoveBlock, toRemove);
 			}
 		} else {
-			for (let i in toRemove) {
+			for (var i in toRemove) {
 				toRemove[i].parentElement.removeChild(toRemove[i]);
 			}
 			cb2();
@@ -69,7 +91,7 @@ function singler(opts, cb1) {
 
 	jsdom.env(path.join(opts.baseDir, opts.htmlDir, opts.inFile), function(err, window) {
 		var nIt = window.document.createNodeIterator(window.document, window.NodeFilter.SHOW_ALL);
-		traverse(nIt, function() {
+		traverse(window.document, nIt, function() {
 			var html = jsdom.serializeDocument(window.document);
 			html = minify(html, minifyOpts);
 			cb1(html);
