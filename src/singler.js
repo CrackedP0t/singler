@@ -88,17 +88,24 @@ function singler(opts, cb1) {
 		}
 	}
 
+	var inFilePath = path.join(opts.baseDir, opts.htmlDir, opts.inFile);
 
-	jsdom.env(path.join(opts.baseDir, opts.htmlDir, opts.inFile), function(err1, window) {
+	if (opts.verbose)
+		console.log("Singling %s", inFilePath);
+
+	jsdom.env(inFilePath, function(err1, window) {
 		var nIt = window.document.createNodeIterator(window.document, window.NodeFilter.SHOW_ALL);
 		traverse(window.document, nIt, function() {
 			var html = jsdom.serializeDocument(window.document);
 			html = minify(html, minifyOpts);
 			if (opts.outFile || opts.outDir !== "") {
-				var filePath = path.join(opts.outDir, opts.outFile
+				var outFilePath = path.join(opts.outDir, opts.outFile
 										 || path.parse(opts.inFile).base);
-				fs.mkdir(path.parse(filePath).dir, function(err2) {
-					fs.writeFile(filePath, html, function(err3) {
+				if (opts.verbose)
+					console.log("Writing to %s", outFilePath);
+
+				fs.mkdir(path.parse(outFilePath).dir, function(err2) {
+					fs.writeFile(outFilePath, html, function(err3) {
 						cb1(html);
 					});
 				});

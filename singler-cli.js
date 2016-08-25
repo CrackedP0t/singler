@@ -19,7 +19,8 @@ var args = yargs
 			"skip-js": "J",
 			"skip-minify": "H",
 			"minify-config": "m",
-			"minify-config-replace": "M"
+			"minify-config-replace": "M",
+			"verbose": "v"
 		})
 		.implies("minify-config-replace", "minify-config")
 		.boolean([
@@ -29,7 +30,8 @@ var args = yargs
 			"skip-css",
 			"skip-js",
 			"skip-minify",
-			"minify-config-replace"
+			"minify-config-replace",
+			"verbose"
 		])
 		.default({
 			"out-file": false,
@@ -42,7 +44,7 @@ var args = yargs
 		})
 		.argv;
 
-var argNames = ["outFile", "outDir", "baseDir", "htmlDir", "cssDir", "jsDir", "print", "skipRemove", "skipAdd", "skipCSS", "skipJS", "skipMinify", "minifyConfig", "minifyConfigReplace"];
+var argNames = ["outFile", "outDir", "baseDir", "htmlDir", "cssDir", "jsDir", "print", "skipRemove", "skipAdd", "skipCSS", "skipJS", "skipMinify", "minifyConfig", "minifyConfigReplace", "verbose"];
 
 var options = {
 	inFile: args._[0]
